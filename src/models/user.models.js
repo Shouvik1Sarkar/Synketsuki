@@ -1,6 +1,13 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
+import jwt from "jsonwebtoken";
+import {
+  ACCESS_TOKEN_EXPIRY,
+  ACCESS_TOKEN_SECRET,
+  REFRESH_TOKEN_EXPIRY,
+  REFRESH_TOKEN_SECRET,
+} from "../../config/env.config.js";
 const userSchema = new mongoose.Schema(
   {
     fullName: {
@@ -32,6 +39,9 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    refreshToken: {
+      type: String,
+    },
     // refreshToken: {
     //   type: String,
     // },
@@ -59,6 +69,17 @@ userSchema.methods.generateOTP = function () {
   this.email_Token = hashedOtp;
   this.email_Token_Expiary = new Date(Date.now() + 20 * 60 * 1000);
   return num;
+};
+
+userSchema.methods.generateAccessToken = function () {
+  return jwt.sign({ _id: this._id }, ACCESS_TOKEN_SECRET, {
+    expiresIn: ACCESS_TOKEN_EXPIRY,
+  });
+};
+userSchema.methods.generateRefreshToken = function () {
+  return jwt.sign({ _id: this._id }, REFRESH_TOKEN_SECRET, {
+    expiresIn: REFRESH_TOKEN_EXPIRY,
+  });
 };
 
 const User = mongoose.model("User", userSchema);

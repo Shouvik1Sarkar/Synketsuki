@@ -84,7 +84,31 @@ export const logIn = asyncHandler(async (req, res) => {
 
   const isPassword = await user.matchPassword(password);
   if (!isPassword) throw new ApiError(400, "Password not matched");
-  return res.status(200).json(new ApiResponse(200, user, "Logged In"));
+  const refreshToken = await user.generateRefreshToken();
+  const accessToken = await user.generateAccessToken();
+
+  const encryptedRefresh = crypto
+    .createHash("sha256")
+    .update(refreshToken)
+    .digest("hex");
+
+  user.refreshToken = encryptedRefresh;
+  await user.save({ validateBeforeSave: false });
+
+  const userResult = await User.findById(user._id).select(
+    "-password -refreshToken",
+  );
+  const options = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+  };
+
+  return res
+    .status(200)
+    .cookie("refreshToken", refreshToken, options)
+    .cookie("accessToken", accessToken, options)
+    .json(new ApiResponse(200, userResult, "Logged In"));
 });
 
 /**

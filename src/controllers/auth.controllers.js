@@ -40,8 +40,6 @@ export const register = asyncHandler(async (req, res) => {
   return res.status(201).json(new ApiResponse(201, user, "User created"));
 });
 
-// export const getMe = asyncHandler(async (req, res) => {});
-
 export const emailVerified = asyncHandler(async (req, res) => {
   const { otp } = req.body;
 
@@ -67,6 +65,25 @@ export const emailVerified = asyncHandler(async (req, res) => {
   user.save({ validateBeforeSave: false });
 
   return res.status(200).json(new ApiResponse(200, user, "verified"));
+});
+
+export const sendEmailVerificationOtp = asyncHandler(async (req, res) => {
+  const { userName, email } = req.body;
+
+  if (!userName && !email) throw ApiError(400, "Email or userName is required");
+
+  const user = await User.findOne({ $or: [{ email }, { userName }] });
+
+  if (!user) throw new ApiError(404, "User not found");
+
+  if (user.isEmailVerified) throw new ApiError(409, "User already verified.");
+
+  const otp = user.generateOTP();
+
+  console.log(otp);
+  await user.save({ validateBeforeSave: false });
+
+  return res.status(200).json(new ApiError(200, null, "otp sent"));
 });
 
 export const logIn = asyncHandler(async (req, res) => {
@@ -110,6 +127,8 @@ export const logIn = asyncHandler(async (req, res) => {
     .cookie("accessToken", accessToken, options)
     .json(new ApiResponse(200, userResult, "Logged In"));
 });
+
+// export const getMe = asyncHandler(async (req, res) => {});
 
 /**
  * Quick reference:

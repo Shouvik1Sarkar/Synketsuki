@@ -9,7 +9,6 @@ const logInAuth = async (req, res, next) => {
   let decoded_data;
   try {
     decoded_data = jwt.verify(accessId, ACCESS_TOKEN_SECRET);
-    console.log("decoded data: ", decoded_data);
   } catch (error) {
     throw new ApiError(401, "Invalid or expired token.");
     // return next(error);

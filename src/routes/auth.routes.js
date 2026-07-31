@@ -22,7 +22,7 @@ userRouter.post("/email-verify", emailVerified);
 userRouter.post("/send-email-verification-otp", sendEmailVerificationOtp);
 userRouter.post("/log-in", logIn);
 
-userRouter.post("/log-out", logOut);
+userRouter.get("/log-out", logInAuth, logOut);
 userRouter.post("/reset-password", resetPassword);
 userRouter.post("/change-password", changePassword);
 userRouter.post("/forgot-password", forgotPassword);

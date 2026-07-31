@@ -141,7 +141,15 @@ export const logIn = asyncHandler(async (req, res) => {
 export const logOut = asyncHandler(async (req, res) => {
   const user = req.user;
 
-  return res;
+  user.refreshToken = undefined;
+
+  user.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .clearCookie("accessToken")
+    .clearCookie("refreshToken")
+    .json(new ApiResponse(200, null, "Logged Out"));
 
   // .json(new ApiResponse(200, null, "Logged Out"));
 });

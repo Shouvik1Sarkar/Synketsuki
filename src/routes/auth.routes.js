@@ -24,7 +24,7 @@ userRouter.post("/log-in", logIn);
 
 userRouter.get("/log-out", logInAuth, logOut);
 userRouter.post("/change-password", logInAuth, changePassword);
-userRouter.post("/reset-password", resetPassword);
 userRouter.post("/forgot-password", forgotPassword);
+userRouter.post("/reset-password", resetPassword);
 
 export default userRouter;

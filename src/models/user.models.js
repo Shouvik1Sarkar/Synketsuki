@@ -45,6 +45,8 @@ const userSchema = new mongoose.Schema(
     // refreshToken: {
     //   type: String,
     // },
+    forgot_otp: { type: String },
+    forgot_otp_Expiary: { type: Date },
   },
   { timestamps: true },
 );
@@ -80,6 +82,16 @@ userSchema.methods.generateRefreshToken = function () {
   return jwt.sign({ _id: this._id }, REFRESH_TOKEN_SECRET, {
     expiresIn: REFRESH_TOKEN_EXPIRY,
   });
+};
+
+userSchema.methods.generateForgotOTP = function () {
+  const num = crypto.randomInt(100000, 1000000).toString();
+
+  let hashedOtp = crypto.createHash("sha256").update(num).digest("hex");
+
+  this.forgot_otp = hashedOtp;
+  this.forgot_otp_Expiary = new Date(Date.now() + 20 * 60 * 1000);
+  return num;
 };
 
 const User = mongoose.model("User", userSchema);

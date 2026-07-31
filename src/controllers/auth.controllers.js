@@ -185,11 +185,59 @@ export const changePassword = asyncHandler(async (req, res) => {
 
 /** FORGOT-PASSWORD*/
 
-export const forgotPassword = asyncHandler(async (req, res) => {});
+export const forgotPassword = asyncHandler(async (req, res) => {
+  const { email, userName } = req.body;
 
-/** CHANGE-PASSWORD*/
+  if (!email && !userName)
+    throw new ApiError(400, "Email and User Name are required");
 
-export const resetPassword = asyncHandler(async (req, res) => {});
+  const user = await User.findOne({ $or: [{ email }, { userName }] });
+  if (!user) throw new ApiError(404, "User not found.");
+
+  const forgot_token = user.generateForgotOTP();
+
+  if (!forgot_token) throw new ApiError(500, "Forgot token not created");
+
+  console.log("FORGOT TOKEN: ", forgot_token);
+
+  user.save({ validateBeforeSave: false });
+
+  return res.status(200).json(new ApiResponse(200, user, "OTP sent"));
+});
+
+/** CHANGE-PASSWORD */
+
+export const resetPassword = asyncHandler(async (req, res) => {
+  const { otp } = req.body;
+  if (!otp) throw new ApiError(400, "OTP missing");
+
+  const encryptedOTP = crypto
+    .createHash("sha256")
+    .update(otp.toString())
+    .digest("hex");
+  console.log("-------------", encryptedOTP);
+  const user = await User.findOne({
+    forgot_otp: encryptedOTP,
+  });
+
+  console.log("User: ", user);
+
+  if (!user) {
+    throw new ApiError(404, "Not found");
+  }
+
+  const { new_password, confirm_new_password } = req.body;
+
+  if (new_password != confirm_new_password) {
+    throw new ApiError(400, "Passwords doid not match");
+  }
+
+  user.password = new_password;
+
+  await user.save();
+
+  return res.status(200).json(new ApiResponse(200, user, "password updated"));
+});
 
 /** REFRESH-ACCESS-TOKEN*/
 

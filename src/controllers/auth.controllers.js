@@ -154,9 +154,34 @@ export const logOut = asyncHandler(async (req, res) => {
   // .json(new ApiResponse(200, null, "Logged Out"));
 });
 
-/** RESET-PASSWORD*/
+/** CHANGE-PASSWORD*/
 
-export const resetPassword = asyncHandler(async (req, res) => {});
+export const changePassword = asyncHandler(async (req, res) => {
+  const user = req.user;
+
+  const { old_password, new_password, confirm_new_password } = req.body;
+
+  if (
+    [old_password, new_password, confirm_new_password].some((e) => {
+      e.trim() == "" || e == undefined;
+    })
+  ) {
+    throw new ApiError(400, "All credentials are required");
+  }
+
+  const isPassword = user.matchPassword(old_password);
+  if (!isPassword) throw new ApiError(400, "wrong password");
+
+  if (new_password != confirm_new_password) {
+    throw new ApiError(400, "Passwords doid not match");
+  }
+
+  user.password = new_password;
+
+  await user.save();
+
+  return res.status(200).json(new ApiResponse(200, user, "password updated"));
+});
 
 /** FORGOT-PASSWORD*/
 
@@ -164,7 +189,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {});
 
 /** CHANGE-PASSWORD*/
 
-export const changePassword = asyncHandler(async (req, res) => {});
+export const resetPassword = asyncHandler(async (req, res) => {});
 
 /** REFRESH-ACCESS-TOKEN*/
 

@@ -15,7 +15,6 @@ const logInAuth = async (req, res, next) => {
   }
 
   const user = await User.findById(decoded_data._id);
-  console.log("user", user);
 
   if (!user) throw new ApiError(401, "Invalid or expired token.");
   if (!user.isEmailVerified) throw new ApiError(401, "Is email verified.");

@@ -5,6 +5,8 @@ import asyncHandler from "../utils/asyncHandlers.utils.js";
 import logger from "../utils/logger.utils.js";
 import crypto from "crypto";
 
+/** REGISTER */
+
 export const register = asyncHandler(async (req, res) => {
   const { fullName, userName, email, password } = req.body;
 
@@ -40,6 +42,8 @@ export const register = asyncHandler(async (req, res) => {
   return res.status(201).json(new ApiResponse(201, user, "User created"));
 });
 
+/** VERIFY EMAIL */
+
 export const emailVerified = asyncHandler(async (req, res) => {
   const { otp } = req.body;
 
@@ -67,6 +71,8 @@ export const emailVerified = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, user, "verified"));
 });
 
+/** SEND EMAIL VERIFICATION OTP*/
+
 export const sendEmailVerificationOtp = asyncHandler(async (req, res) => {
   const { userName, email } = req.body;
 
@@ -85,6 +91,8 @@ export const sendEmailVerificationOtp = asyncHandler(async (req, res) => {
 
   return res.status(200).json(new ApiError(200, null, "otp sent"));
 });
+
+/** LOG-IN*/
 
 export const logIn = asyncHandler(async (req, res) => {
   const { email, userName, password } = req.body;
@@ -128,8 +136,31 @@ export const logIn = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, userResult, "Logged In"));
 });
 
-// export const getMe = asyncHandler(async (req, res) => {});
+/** LOG-OUT*/
 
+export const logOut = asyncHandler(async (req, res) => {
+  const user = req.user;
+
+  return res;
+
+  // .json(new ApiResponse(200, null, "Logged Out"));
+});
+
+/** RESET-PASSWORD*/
+
+export const resetPassword = asyncHandler(async (req, res) => {});
+
+/** FORGOT-PASSWORD*/
+
+export const forgotPassword = asyncHandler(async (req, res) => {});
+
+/** CHANGE-PASSWORD*/
+
+export const changePassword = asyncHandler(async (req, res) => {});
+
+/** REFRESH-ACCESS-TOKEN*/
+
+export const refreshAccessToken = asyncHandler(async (req, res) => {});
 /**
  * Quick reference:
 

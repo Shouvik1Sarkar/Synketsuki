@@ -10,6 +10,8 @@ import {
   sendEmailVerificationOtp,
 } from "../controllers/auth.controllers.js";
 import logInAuth from "../middlewares/logInAuth.middlewares.js";
+import validate from "../middlewares/validationError.middleware.js";
+import { registerValidator } from "../utils/auth_validate.utils.js";
 
 const userRouter = express.Router();
 
@@ -17,7 +19,7 @@ const userRouter = express.Router();
 //   res.send("Hello This is auth");
 // });
 
-userRouter.post("/register", register);
+userRouter.post("/register", registerValidator(), validate, register);
 userRouter.post("/email-verify", emailVerified);
 userRouter.post("/send-email-verification-otp", sendEmailVerificationOtp);
 userRouter.post("/log-in", logIn);

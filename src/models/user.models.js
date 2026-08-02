@@ -8,6 +8,10 @@ import {
   REFRESH_TOKEN_EXPIRY,
   REFRESH_TOKEN_SECRET,
 } from "../../config/env.config.js";
+import {
+  available_roles_enum,
+  available_user_roles,
+} from "../utils/constants.utils.js";
 
 const userSchema = new mongoose.Schema(
   {
@@ -49,8 +53,13 @@ const userSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      default: "user",
-      enum: ["user", "product_owner", "product_admin"],
+      default: available_user_roles.USER,
+      enum: available_roles_enum,
+    },
+
+    is_suspended: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true },

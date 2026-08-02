@@ -10,7 +10,7 @@ import {
   sendEmailVerificationOtp,
 } from "../controllers/auth.controllers.js";
 import logInAuth from "../middlewares/logInAuth.middlewares.js";
-import validate from "../middlewares/validationError.middleware.js";
+import validate from "../middlewares/validationError.middlewares.js";
 import { registerValidator } from "../utils/auth_validate.utils.js";
 
 const authRouter = express.Router();

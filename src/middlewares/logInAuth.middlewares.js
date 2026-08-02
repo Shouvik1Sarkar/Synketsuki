@@ -11,15 +11,15 @@ const logInAuth = async (req, res, next) => {
     decoded_data = jwt.verify(accessId, ACCESS_TOKEN_SECRET);
   } catch (error) {
     throw new ApiError(401, "Invalid or expired token.");
-    // return next(error);
   }
 
   const user = await User.findById(decoded_data._id).select(
     "-password -refreshToken",
   );
 
-  if (!user) throw new ApiError(401, "Invalid or expired token.");
-  throw new ApiError(403, "Please verify your email.");
+  if (!user) {
+    throw new ApiError(403, "Please verify your email.");
+  }
 
   req.user = user;
 

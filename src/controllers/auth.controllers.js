@@ -112,7 +112,7 @@ export const logIn = asyncHandler(async (req, res) => {
   if (!user) {
     throw new ApiError(404, "Not found");
   }
-  console.log("USER", user);
+
   if (!user.isEmailVerified) throw new ApiError(400, "Email not verified");
 
   const isPassword = await user.matchPassword(password);

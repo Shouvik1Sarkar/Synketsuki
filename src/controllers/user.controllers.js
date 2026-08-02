@@ -28,8 +28,8 @@ export const getUserById = asyncHandler(async (req, res) => {
 export const getAllUsers = asyncHandler(async (req, res) => {
   const user = req.user;
   if (!user) throw new ApiError(404, "User not logged In.");
-  if (!["product_owner", "product_admin"].includes(req.role))
-    throw new ApiError(401, "Not allowed.");
+  // if (!["product_owner", "product_admin"].includes(req.role))
+  //   throw new ApiError(401, "Not allowed.");
 
   const allUsers = await User.find().select(
     "-password -refreshToken -emailVerificationToken -forgotPasswordToken",

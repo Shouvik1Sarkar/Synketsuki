@@ -8,6 +8,7 @@ import {
   REFRESH_TOKEN_EXPIRY,
   REFRESH_TOKEN_SECRET,
 } from "../../config/env.config.js";
+
 const userSchema = new mongoose.Schema(
   {
     fullName: {
@@ -42,11 +43,15 @@ const userSchema = new mongoose.Schema(
     refreshToken: {
       type: String,
     },
-    // refreshToken: {
-    //   type: String,
-    // },
+
     forgot_otp: { type: String },
     forgot_otp_Expiary: { type: Date },
+
+    role: {
+      type: String,
+      default: "user",
+      enum: ["user", "product_owner", "product_admin"],
+    },
   },
   { timestamps: true },
 );

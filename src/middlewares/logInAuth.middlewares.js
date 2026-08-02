@@ -14,10 +14,12 @@ const logInAuth = async (req, res, next) => {
     // return next(error);
   }
 
-  const user = await User.findById(decoded_data._id);
+  const user = await User.findById(decoded_data._id).select(
+    "-password -refreshToken",
+  );
 
   if (!user) throw new ApiError(401, "Invalid or expired token.");
-  if (!user.isEmailVerified) throw new ApiError(401, "Is email verified.");
+  throw new ApiError(403, "Please verify your email.");
 
   req.user = user;
 

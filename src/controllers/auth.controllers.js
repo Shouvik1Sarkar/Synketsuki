@@ -2,8 +2,10 @@ import User from "../models/user.models.js";
 import ApiError from "../utils/ApiError.utils.js";
 import ApiResponse from "../utils/ApiResponse.utils.js";
 import asyncHandler from "../utils/asyncHandlers.utils.js";
+import { send_email } from "../utils/email.utils.js";
 import logger from "../utils/logger.utils.js";
 import crypto from "crypto";
+import { send_verification_otp } from "../utils/email.utils.js";
 
 /** REGISTER */
 
@@ -38,6 +40,12 @@ export const register = asyncHandler(async (req, res) => {
   const otp = user.generateOTP();
   await user.save({ validateBeforeSave: false });
   console.log("OTP", otp);
+
+  await send_email({
+    email: user.email,
+    subject: "Verify your account",
+    meilGenContent: send_verification_otp(user.fullName, otp),
+  });
 
   return res.status(201).json(new ApiResponse(201, user, "User created"));
 });

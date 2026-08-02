@@ -22,8 +22,10 @@
     "express": "^5.2.1",
     "express-validator": "^7.3.2",
     "jsonwebtoken": "^9.0.3",
+    "mailgen": "^2.0.34",
     "mongodb": "^7.5.0",
     "mongoose": "^9.8.1",
+    "nodemailer": "^9.0.3",
     "pino": "^10.3.1"
   }
 }

@@ -14,7 +14,8 @@ function asyncHandler(fn) {
     try {
       return await fn(req, res, next);
     } catch (err) {
-      return next(err);
+      console.log("error: ", err);
+      next(err);
     }
   };
 }

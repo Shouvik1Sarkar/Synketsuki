@@ -8,7 +8,7 @@ const validate = asyncHandler(async (req, res, next) => {
   if (errors.isEmpty()) {
     return next();
   }
-  console.log("ERRORS: ", errors);
+  // console.log("ERRORS: ", errors);
   const extractedErrors = [];
 
   errors.array().map((err) => {

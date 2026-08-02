@@ -20,12 +20,14 @@ adminRouter.patch(
   authorize("user", "product_owner", "product_admin"),
   Suspend_unsuspend_users,
 );
+
 adminRouter.delete(
   "/delete/:id",
   logInAuth,
   authorize("user", "product_owner", "product_admin"),
   delete_users,
 );
+
 adminRouter.patch(
   "/change-user-roles/:id",
   logInAuth,

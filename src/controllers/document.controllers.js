@@ -1,5 +1,6 @@
 import DocumentMember from "../models/docsMember.models.js";
 import Document from "../models/document.models.js";
+import { DocumentVersion } from "../models/document_versioning.models.js";
 import ApiError from "../utils/ApiError.utils.js";
 import ApiResponse from "../utils/ApiResponse.utils.js";
 import asyncHandler from "../utils/asyncHandlers.utils.js";
@@ -155,8 +156,113 @@ export const updateDocument = asyncHandler(async (req, res) => {
     runValidators: true,
   });
 
+  // update_doc.version += 1;
+  // await update_doc.save();
+
   return res.status(200).json(new ApiResponse(200, update_doc, "Update doc."));
 });
+
+/********************  learn mongoose transaction**************************************** */
+/**************************************************************************************** */
+/**************************************************************************************** */
+/**************************************************************************************** */
+
+export const version_update = asyncHandler(async (req, res) => {
+  const user = req.user;
+
+  const { id } = req.params;
+
+  if (!id) throw new ApiError(400, "Document ID is required");
+
+  const membership = await DocumentMember.findOne({
+    user: user._id,
+    document: id,
+  }).populate("document");
+
+  if (!membership) {
+    throw new ApiError(
+      403,
+      "You don't have permission to access this document.",
+    );
+  }
+
+  if (!membership.document) {
+    throw new ApiError(404, "document not found");
+  }
+
+  if (membership.document.isDeleted) {
+    throw new ApiError(404, "Document not found.");
+  }
+
+  if (membership.document.isArchived) {
+    throw new ApiError(409, "Archived documents cannot be versioned.");
+  }
+
+  if (membership.role !== "owner") {
+    throw new ApiError(403, "Only the owner can create a version.");
+  }
+
+  const { message } = req.body;
+
+  /** PREVENT DUPLICATION */
+
+  const latestVersion = await DocumentVersion.findOne({
+    document: id,
+  }).sort({ version: -1 });
+
+  if (
+    latestVersion &&
+    latestVersion.title === membership.document.title &&
+    latestVersion.content === membership.document.content
+  ) {
+    throw new ApiError(409, "No changes detected since the previous version.");
+  }
+
+  const session = await mongoose.startSession();
+
+  try {
+    session.startTransaction();
+
+    membership.document.version += 1;
+    await membership.document.save({ session });
+
+    const newVersion = await DocumentVersion.create(
+      {
+        document: id,
+        version: membership.document.version,
+        title: membership.document.title,
+        content: membership.document.content,
+        createdBy: user._id,
+        message,
+      },
+      { session },
+    );
+
+    await session.commitTransaction();
+
+    return res.status(201).json(
+      new ApiResponse(
+        201,
+        {
+          document: membership.document,
+          version: newVersion,
+        },
+        "Version created successfully.",
+      ),
+    );
+  } catch (err) {
+    await session.abortTransaction();
+    throw err;
+  } finally {
+    session.endSession();
+  }
+});
+
+/**************************************************************************************** */
+/**************************************************************************************** */
+/**************************************************************************************** */
+/**************************************************************************************** */
+
 export const deleteDocument = asyncHandler(async (req, res) => {
   const user = req.user;
 
@@ -200,6 +306,7 @@ export const deleteDocument = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, membership, "Moved to trash"));
 });
+
 export const restoreDocument = asyncHandler(async (req, res) => {
   const user = req.user;
 
@@ -243,6 +350,7 @@ export const restoreDocument = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, membership, "Document removed from trash"));
 });
+
 export const permanentlyDeleteDocument = asyncHandler(async (req, res) => {
   const user = req.user;
 

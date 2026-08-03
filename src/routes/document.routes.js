@@ -13,6 +13,7 @@ import {
   toggleArchiveDocument,
   trashCan,
   updateDocument,
+  version_update,
 } from "../controllers/document.controllers.js";
 import { authorize } from "../middlewares/authorize_roles.middlewares.js";
 
@@ -38,5 +39,6 @@ documentRouter.delete("/clean-trashCan", logInAuth, cleanTrashCan);
 documentRouter.patch("/restore/:id", logInAuth, restoreDocument);
 documentRouter.patch("/toggle-archive/:id", logInAuth, toggleArchiveDocument);
 documentRouter.post("/duplicate/:id", logInAuth, duplicateDocument);
+documentRouter.post("/documents/:id/snapshot", logInAuth, version_update);
 
 export default documentRouter;

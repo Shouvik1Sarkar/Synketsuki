@@ -5,4 +5,3 @@ export const available_user_roles = {
 };
 
 export const available_roles_enum = Object.values(available_user_roles);
-console.log(available_roles_enum);

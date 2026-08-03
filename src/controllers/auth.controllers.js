@@ -39,7 +39,7 @@ export const register = asyncHandler(async (req, res) => {
 
   const otp = user.generateOTP();
   await user.save({ validateBeforeSave: false });
-  console.log("OTP", otp);
+  logger.info({ otp }, "OTP");
 
   await send_email({
     email: user.email,

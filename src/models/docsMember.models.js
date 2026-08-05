@@ -15,7 +15,7 @@ const documentMemberSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ["owner", "editor", "viewer"],
+      enum: ["owner", "admin", "editor", "viewer"],
       default: "viewer",
     },
 

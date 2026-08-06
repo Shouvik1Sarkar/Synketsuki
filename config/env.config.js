@@ -13,4 +13,5 @@ export const {
   SMTP_PASS,
   SMTP_HOST,
   SMTP_PORT,
+  CLIENT_URL,
 } = process.env;

@@ -6,6 +6,7 @@ import {
   SMTP_HOST,
   SMTP_PORT,
 } from "../../config/env.config.js";
+import logger from "./logger.utils.js";
 
 export async function send_email(options) {
   const mailGenerator = new Mailgen({
@@ -43,7 +44,9 @@ export async function send_email(options) {
     });
     console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
   } catch (error) {
-    console.error("Error while sending mail:", err);
+    // console.error("Error while sending mail:", err);
+    logger.error({ error }, "Error while sending mail:");
+    throw error;
   }
 }
 
@@ -61,5 +64,22 @@ export const send_verification_otp = (userName, otp) => ({
       },
     },
     outro: "If you didn't request this, please ignore this email.",
+  },
+});
+
+export const send_invitation_url = (userName, sender, url) => ({
+  body: {
+    name: userName,
+    intro: `Hey!, ${userName}, You are invited to join Collaborate by ${sender}`,
+    action: {
+      instructions: "Click this button to join.",
+      button: {
+        color: "#22BC66",
+        // text: `CLICK: ${url}`,
+        text: "Accept Invitation",
+        link: url,
+      },
+    },
+    outro: "Thanks.",
   },
 });

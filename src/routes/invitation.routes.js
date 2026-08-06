@@ -6,6 +6,7 @@ import { authorize } from "../middlewares/authorize_roles.middlewares.js";
 import {
   accessInvitationUrl,
   createInvitationUrl,
+  delete_url,
   getAllInvitationUrls,
   rejectInvitationUrl,
   revokeInvitationUrl,
@@ -22,5 +23,6 @@ invitationRouter.get(
   getAllInvitationUrls,
 );
 invitationRouter.patch("/revoke-url/:id", logInAuth, revokeInvitationUrl);
+invitationRouter.patch("/delete_url/:id", logInAuth, delete_url);
 
 export default invitationRouter;

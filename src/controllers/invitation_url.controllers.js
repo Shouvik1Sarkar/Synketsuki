@@ -217,7 +217,7 @@ export const rejectInvitationUrl = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, null, "Invitation rejected successfully."));
 });
 
-export const updateInvitationUrl = asyncHandler(async (req, res) => {});
+// export const updateInvitationUrl = asyncHandler(async (req, res) => {});
 
 export const revokeInvitationUrl = asyncHandler(async (req, res) => {
   const user = req.user;
@@ -291,4 +291,22 @@ export const getAllInvitationUrls = asyncHandler(async (req, res) => {
       "Invitation list fetched successfully.",
     ),
   );
+});
+
+export const delete_url = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new ApiError(400, "Invalid invitation id");
+  }
+
+  const invitation = await Invitation.findByIdAndDelete(id);
+
+  if (!invitation) {
+    throw new ApiError(404, "Invitation not found");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, null, "Invitation URL deleted successfully."));
 });

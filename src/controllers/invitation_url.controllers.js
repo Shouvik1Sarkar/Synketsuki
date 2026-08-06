@@ -151,6 +151,10 @@ export const accessInvitationUrl = asyncHandler(async (req, res) => {
     );
   }
 
+  if (findInvitation.isRevoked) {
+    throw new ApiError(403, "Sorry the URL is revoked.");
+  }
+
   findInvitation.status = "accepted";
   await findInvitation.save();
 
@@ -215,7 +219,28 @@ export const rejectInvitationUrl = asyncHandler(async (req, res) => {
 
 export const updateInvitationUrl = asyncHandler(async (req, res) => {});
 
-export const revokeInvitationUrl = asyncHandler(async (req, res) => {});
+export const revokeInvitationUrl = asyncHandler(async (req, res) => {
+  const user = req.user;
+
+  const { id } = req.params;
+
+  if (!id) {
+    throw new ApiError(403, "ID needed");
+  }
+  const invitation_url = await Invitation.findById(id);
+
+  if (!invitation_url) {
+    throw new ApiError(403, "URL not found");
+  }
+  if (invitation_url.isRevoked) {
+    throw new ApiError(409, "Already revoked");
+  }
+  invitation_url.isRevoked = true;
+
+  await invitation_url.save();
+
+  return res.status(200).json(new ApiResponse(200, null, "Api revoked."));
+});
 
 export const getAllInvitationUrls = asyncHandler(async (req, res) => {
   const user = req.user;

@@ -40,6 +40,11 @@ const invitationSchema = new mongoose.Schema(
       default: "pending",
     },
 
+    isRevoked: {
+      type: Boolean,
+      default: false,
+    },
+
     expiresAt: {
       type: Date,
       required: true,

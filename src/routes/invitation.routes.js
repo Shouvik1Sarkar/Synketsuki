@@ -8,6 +8,7 @@ import {
   createInvitationUrl,
   getAllInvitationUrls,
   rejectInvitationUrl,
+  revokeInvitationUrl,
 } from "../controllers/invitation_url.controllers.js";
 
 const invitationRouter = express.Router();
@@ -20,5 +21,6 @@ invitationRouter.get(
   logInAuth,
   getAllInvitationUrls,
 );
+invitationRouter.patch("/revoke-url/:id", logInAuth, revokeInvitationUrl);
 
 export default invitationRouter;

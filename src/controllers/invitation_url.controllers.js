@@ -7,7 +7,8 @@ import ApiError from "../utils/ApiError.utils.js";
 import ApiResponse from "../utils/ApiResponse.utils.js";
 import asyncHandler from "../utils/asyncHandlers.utils.js";
 import crypto from "crypto";
-import { send_email } from "../utils/email.utils.js";
+import logger from "../utils/logger.utils.js";
+import { send_email, send_invitation_url } from "../utils/email.utils.js";
 
 function generate_token() {
   const token = crypto.randomBytes(32).toString("hex");
@@ -112,18 +113,157 @@ export const createInvitationUrl = asyncHandler(async (req, res) => {
     // Can use session token
     await Invitation.findByIdAndDelete(invitation._id);
 
-    logger.error({ error }, "Failed to send invitation email");
+    logger.error(error, "Failed to send invitation email");
 
     throw new ApiError(500, "Failed to send invitation email.");
   }
 
-  return res.status(201).json(new ApiResponse(201, url, "URL sent."));
+  return res.status(201).json(new ApiResponse(201, null, "URL sent."));
 });
 
-export const accessInvitationUrl = asyncHandler(async (req, res) => {});
+export const accessInvitationUrl = asyncHandler(async (req, res) => {
+  const user = req.user;
+
+  const { token } = req.params;
+
+  if (!token) {
+    throw new ApiError(401, "Token required");
+  }
+
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+  const findInvitation = await Invitation.findOne({
+    token: hashedToken,
+    expiresAt: { $gt: Date.now() },
+  });
+
+  if (!findInvitation) {
+    throw new ApiError(404, "Invalid URL");
+  }
+  if (!findInvitation.invitedUser.equals(user._id)) {
+    throw new ApiError(403, "This invitation does not belong to you.");
+  }
+
+  if (findInvitation.status !== "pending") {
+    throw new ApiError(
+      409,
+      "This invitation has already been accepted or rejected.",
+    );
+  }
+
+  findInvitation.status = "accepted";
+  await findInvitation.save();
+
+  const document = await Document.findById(findInvitation.document);
+
+  if (!document) {
+    throw new ApiError(404, "Document not found");
+  }
+
+  let createDocumentMenber;
+  if (findInvitation.status == "accepted") {
+    createDocumentMenber = await DocumentMember.create({
+      user: user._id,
+      document: document._id,
+      role: findInvitation.role,
+      invitedBy: findInvitation.invitedBy,
+    });
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, findInvitation, "User accessed the url"));
+});
+
+export const rejectInvitationUrl = asyncHandler(async (req, res) => {
+  const user = req.user;
+
+  const { token } = req.params;
+
+  if (!token) {
+    throw new ApiError(400, "Token required");
+  }
+
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+  const findInvitation = await Invitation.findOne({
+    token: hashedToken,
+    expiresAt: { $gt: Date.now() },
+  });
+
+  if (!findInvitation) {
+    throw new ApiError(404, "Invalid URL");
+  }
+  if (!findInvitation.invitedUser.equals(user._id)) {
+    throw new ApiError(403, "This invitation does not belong to you.");
+  }
+
+  if (findInvitation.status !== "pending") {
+    throw new ApiError(
+      409,
+      "This invitation has already been accepted or rejected.",
+    );
+  }
+
+  findInvitation.status = "rejected";
+  await findInvitation.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, null, "Invitation rejected successfully."));
+});
 
 export const updateInvitationUrl = asyncHandler(async (req, res) => {});
 
 export const revokeInvitationUrl = asyncHandler(async (req, res) => {});
 
-export const getAllInvitationUrls = asyncHandler(async (req, res) => {});
+export const getAllInvitationUrls = asyncHandler(async (req, res) => {
+  const user = req.user;
+  const { id } = req.params;
+
+  const doc = await Document.findById(id);
+  if (!doc) {
+    throw new ApiError(404, "Document not found");
+  }
+  const documentMember = await DocumentMember.findOne({
+    user: user._id,
+    document: id,
+  });
+  if (!documentMember) {
+    throw new ApiError(403, "You can not access");
+  }
+
+  if (!["owner", "admin"].includes(documentMember.role)) {
+    throw new ApiError(403, "You are not authorized.");
+  }
+
+  const all_invitation_url = await Invitation.find({
+    document: documentMember.document,
+  })
+    .sort({ createdAt: -1 })
+    .populate("invitedUser", "fullName email")
+    .populate("invitedBy", "fullName");
+
+  let pending_invitations = all_invitation_url.filter(
+    (e) => e.status == "pending",
+  );
+  let accepted_invitations = all_invitation_url.filter(
+    (e) => e.status == "accepted",
+  );
+  let rejected_invitations = all_invitation_url.filter(
+    (e) => e.status == "rejected",
+  );
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        all_invitation_url,
+        pending_invitations,
+        accepted_invitations,
+        rejected_invitations,
+      },
+      "Invitation list fetched successfully.",
+    ),
+  );
+});

@@ -6,6 +6,7 @@ import authRouter from "./routes/auth.routes.js";
 import userRouter from "./routes/user.routes.js";
 import adminRouter from "./routes/admin.routes.js";
 import documentRouter from "./routes/document.routes.js";
+import invitationRouter from "./routes/invitation.routes.js";
 
 const app = express();
 
@@ -44,5 +45,6 @@ app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/admin", adminRouter);
 app.use("/api/v1/document", documentRouter);
+app.use("/api/v1/invitation", invitationRouter);
 
 export default app;

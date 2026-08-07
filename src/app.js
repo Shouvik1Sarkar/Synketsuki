@@ -7,6 +7,7 @@ import userRouter from "./routes/user.routes.js";
 import adminRouter from "./routes/admin.routes.js";
 import documentRouter from "./routes/document.routes.js";
 import invitationRouter from "./routes/invitation.routes.js";
+import shareUrlRouter from "./routes/shareUrl.routes.js";
 
 const app = express();
 
@@ -46,5 +47,16 @@ app.use("/api/v1/user", userRouter);
 app.use("/api/v1/admin", adminRouter);
 app.use("/api/v1/document", documentRouter);
 app.use("/api/v1/invitation", invitationRouter);
+app.use("/api/v1/share", shareUrlRouter);
 
 export default app;
+
+/***
+ * 
+ * [16:45:40] ERROR: Mongodb connection ERROR.
+    err: {
+      "type": "MongooseServerSelectionError",
+      "message": "Could not connect to any servers in your MongoDB Atlas cluster. One common reason is that you're trying to access the database from an IP that isn't whitelisted. Make sure your current IP address is on your Atlas cluster's IP whitelist: https://www.mongodb.com/docs/atlas/security-whitelist/",
+      "stack":
+          MongooseServerSelectionError: Could not connect to any servers in your MongoDB Atlas cluster. One common reason is that you're trying to access the database from an IP that isn't whitelisted. Make sure your current IP address is on your Atlas cluster's IP whitelist: https://www.mongodb.com/docs/atlas/security-whitelist/
+ */

@@ -121,6 +121,8 @@ export const createInvitationUrl = asyncHandler(async (req, res) => {
   return res.status(201).json(new ApiResponse(201, null, "URL sent."));
 });
 
+//User joined
+
 export const accessInvitationUrl = asyncHandler(async (req, res) => {
   const user = req.user;
 

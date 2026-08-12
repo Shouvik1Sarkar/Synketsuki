@@ -8,9 +8,21 @@ import globalError from "./src/middlewares/globalError.middlewares.js";
 
 import pino from "pino";
 
-// app.get("/", (req, res) => {
-//   res.send("Hello World");
-// });
+import http from "http";
+
+import path from "path";
+
+import { Server } from "socket.io";
+
+import { initializeSocket } from "./src/sockets/socket.js";
+
+const server = http.createServer(app);
+
+const io = initializeSocket(server);
+
+app.get("/lala", (req, res) => {
+  return res.sendFile(path.join(path.resolve("./public"), "index.html"));
+});
 
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
 app.use(globalError);
@@ -19,7 +31,7 @@ const startServer = async () => {
   try {
     await connectDB(MONGODB_URI);
 
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log("Server running at->", PORT);
     });
   } catch (err) {
@@ -29,17 +41,3 @@ const startServer = async () => {
 };
 
 startServer();
-
-/**
- * 
- * Mongodb connection error Error: querySrv ECONNREFUSED _mongodb._tcp.cluster0.ajhohvt.mongodb.net
-    at QueryReqWrap.onresolve [as oncomplete] (node:internal/dns/promises:295:17) {
-  errno: undefined,
-  code: 'ECONNREFUSED',
-  syscall: 'querySrv',
-  hostname: '_mongodb._tcp.cluster0.ajhohvt.mongodb.net'
-}
-
-
-Mongodb connection error MongooseServerSelectionError: Could not connect to any servers in your MongoDB Atlas cluster. One common reason is that you're trying to access the database from an IP that isn't whitelisted. Make sure your current IP address is on your Atlas cluster's IP whitelist: https://www.mongodb.com/docs/atlas/security-whitelist/
- */

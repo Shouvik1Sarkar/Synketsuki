@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "cookie": "^2.0.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
@@ -26,6 +27,7 @@
     "mongodb": "^7.5.0",
     "mongoose": "^9.8.1",
     "nodemailer": "^9.0.3",
-    "pino": "^10.3.1"
+    "pino": "^10.3.1",
+    "socket.io": "^4.8.3"
   }
 }

@@ -113,9 +113,9 @@ export const getDocumentById = asyncHandler(async (req, res) => {
   if (!id) {
     throw new ApiError(400, "Not created doc.");
   }
-  const redis_key = `docs:${id}`;
+  const redisKey2 = `doc:${id}`;
 
-  const cached_Data = await createRedis.get(redis_key);
+  const cached_Data = await createRedis.get(redisKey2);
 
   if (cached_Data) {
     return res
@@ -138,7 +138,7 @@ export const getDocumentById = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Document not found.");
   }
 
-  await createRedis.set(redis_key, JSON.stringify(membership), { EX: 60 * 5 });
+  await createRedis.set(redisKey2, JSON.stringify(membership), { EX: 60 * 5 });
 
   return res.status(200).json(new ApiResponse(200, { membership }, "doc "));
 });
@@ -146,7 +146,7 @@ export const getDocumentById = asyncHandler(async (req, res) => {
 export const updateDocument = asyncHandler(async (req, res) => {
   const user = req.user;
 
-  const redisKey = `all_docs:${user._id}`;
+  const redis_key = `all_docs:${user._id}`;
 
   const { id } = req.params;
 
@@ -197,7 +197,7 @@ export const updateDocument = asyncHandler(async (req, res) => {
     runValidators: true,
   });
 
-  await createRedis.del(redisKey);
+  await createRedis.del(redis_key);
   await createRedis.del(redisKey2);
 
   return res
@@ -289,6 +289,7 @@ export const version_update = asyncHandler(async (req, res) => {
 
     await createRedis.del(redis_key);
     await createRedis.del(redisKey2);
+
     return res.status(201).json(
       new ApiResponse(
         201,
@@ -312,6 +313,7 @@ export const version_update = asyncHandler(async (req, res) => {
 /**************************************************************************************** */
 /**************************************************************************************** */
 
+//  Move to trash can //
 export const deleteDocument = asyncHandler(async (req, res) => {
   const user = req.user;
 
@@ -375,6 +377,8 @@ export const restoreDocument = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Not created doc.");
   }
 
+  const redisKey2 = `doc:${id}`;
+
   const membership = await DocumentMember.findOne({
     user: req.user._id,
     document: id,
@@ -407,6 +411,8 @@ export const restoreDocument = asyncHandler(async (req, res) => {
   await membership.document.save();
 
   await createRedis.del(redis_key);
+  await createRedis.del(redisKey2);
+
   return res
     .status(200)
     .json(new ApiResponse(200, membership, "Document removed from trash"));
@@ -537,7 +543,9 @@ export const toggleArchiveDocument = asyncHandler(async (req, res) => {
 
   return res.status(200).json(new ApiResponse(200, membership, message));
 });
+
 // export const unarchiveDocument = asyncHandler(async (req, res) => {});
+
 export const duplicateDocument = asyncHandler(async (req, res) => {
   const user = req.user;
 

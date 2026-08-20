@@ -106,27 +106,57 @@ export const getUserDocuments = asyncHandler(async (req, res) => {
 });
 
 // later make a ustility function const membership = await getDocumentMembership(user._id, documentId);
+// export const getDocumentById = asyncHandler(async (req, res) => {
+//   const user = req.user;
+//   const { id } = req.params;
+
+//   if (!id) {
+//     throw new ApiError(400, "Not created doc.");
+//   }
+//   const redisKey2 = `doc:${id}`;
+
+//   const cached_Data = await createRedis.get(redisKey2);
+
+//   if (cached_Data) {
+//     return res
+//       .status(200)
+//       .json(new ApiResponse(200, JSON.parse(cached_Data), "doc"));
+//   }
+
+//   const membership = await DocumentMember.findOne({
+//     user: req.user._id,
+//     document: id,
+//   }).populate("document");
+//   if (!membership) {
+//     throw new ApiError(
+//       403,
+//       "You don't have permission to access this document.",
+//     );
+//   }
+
+//   if (membership.document.isDeleted) {
+//     throw new ApiError(404, "Document not found.");
+//   }
+
+//   await createRedis.set(redisKey2, JSON.stringify(membership), { EX: 60 * 5 });
+
+//   return res.status(200).json(new ApiResponse(200, { membership }, "doc "));
+// });
+
 export const getDocumentById = asyncHandler(async (req, res) => {
   const user = req.user;
   const { id } = req.params;
 
   if (!id) {
-    throw new ApiError(400, "Not created doc.");
-  }
-  const redisKey2 = `doc:${id}`;
-
-  const cached_Data = await createRedis.get(redisKey2);
-
-  if (cached_Data) {
-    return res
-      .status(200)
-      .json(new ApiResponse(200, JSON.parse(cached_Data), "doc "));
+    throw new ApiError(400, "Document id is required.");
   }
 
+  // 1. Always check membership first
   const membership = await DocumentMember.findOne({
-    user: req.user._id,
+    user: user._id,
     document: id,
-  }).populate("document");
+  });
+
   if (!membership) {
     throw new ApiError(
       403,
@@ -134,13 +164,46 @@ export const getDocumentById = asyncHandler(async (req, res) => {
     );
   }
 
-  if (membership.document.isDeleted) {
+  const redisKey = `doc:${id}`;
+
+  // 2. Now check Redis
+  const cachedDocument = await createRedis.get(redisKey);
+
+  if (cachedDocument) {
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        {
+          document: JSON.parse(cachedDocument),
+          role: membership.role,
+        },
+        "Document fetched.",
+      ),
+    );
+  }
+
+  // 3. Cache miss -> MongoDB
+  const document = await Document.findById(id);
+
+  if (!document || document.isDeleted) {
     throw new ApiError(404, "Document not found.");
   }
 
-  await createRedis.set(redisKey2, JSON.stringify(membership), { EX: 60 * 5 });
+  // 4. Cache ONLY the document
+  await createRedis.set(redisKey, JSON.stringify(document), {
+    EX: 60 * 5,
+  });
 
-  return res.status(200).json(new ApiResponse(200, { membership }, "doc "));
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        document,
+        role: membership.role,
+      },
+      "Document fetched.",
+    ),
+  );
 });
 
 export const updateDocument = asyncHandler(async (req, res) => {

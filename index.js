@@ -15,6 +15,7 @@ import path from "path";
 import { Server } from "socket.io";
 
 import { initializeSocket } from "./src/sockets/socket.js";
+import { connectRedis } from "./config/redis.config.js";
 
 const server = http.createServer(app);
 
@@ -29,6 +30,7 @@ app.use(globalError);
 
 const startServer = async () => {
   try {
+    await connectRedis();
     await connectDB(MONGODB_URI);
 
     server.listen(PORT, () => {

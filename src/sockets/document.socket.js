@@ -1,3 +1,4 @@
+import { publisherUserEvent } from "../../config/redis.config.js";
 import DocumentMember from "../models/docsMember.models.js";
 import Document from "../models/document.models.js";
 
@@ -9,7 +10,10 @@ import Document from "../models/document.models.js";
 |────────────────|
 */
 
-// join_document;
+/*
+ * join-document -> the user event type (for pub sub)
+ * join_document -> the user event (Socket)
+ */
 
 export const join_document = (io, socket) => {
   socket.on("join_document", async (documentId, documentName) => {
@@ -27,25 +31,44 @@ export const join_document = (io, socket) => {
 
     socket.join(`document:${documentId}`);
 
-    io.to(`document:${documentId}`).emit(
-      "join_document",
-      `User ${userName} has joined the document: ${documentName}.`,
-    );
+    // io.to(`document:${documentId}`).emit(
+    //   "join_document",
+    //   `User ${userName} has joined the document: ${documentName}.`,
+    // );
+
+    const data = {
+      docId: `document:${documentId}`,
+      message: `User ${userName} has joined the document: ${documentName}.`,
+    };
+    await publisherUserEvent({ type: "join-document", data });
   });
 };
+
+// await subscriberUserJoinDocs((message) => {
+//   const data = JSON.parse(message);
+
+//   io.to(data.docId).emit("join_document", data.message);
+// });
 
 // leave_document;
 
 export const leave_document = (io, socket) => {
-  socket.on("leave_document", (documentId, documentName) => {
+  socket.on("leave_document", async (documentId, documentName) => {
     const userName = socket.user.userName;
 
     socket.leave(`document:${documentId}`);
 
-    io.to(`document:${documentId}`).emit(
-      "leave_document",
-      `User ${userName} has left the document: ${documentName}.`,
-    );
+    const data = {
+      docId: `document:${documentId}`,
+      message: `User ${userName} has left the document: ${documentName}.`,
+    };
+
+    // io.to(`document:${documentId}`).emit(
+    //   "leave_document",
+    //   `User ${userName} has left the document: ${documentName}.`,
+    // );
+
+    await publisherUserEvent({ type: "leave-document", data });
   });
 };
 
@@ -79,10 +102,17 @@ export const start_writing = (io, socket) => {
     }
     /******************************************************************************************************************/
 
-    io.to(`document:${documentId}`).emit(
-      "edit_document",
-      `User ${userName} is editing document: ${documentName}.`,
-    );
+    // io.to(`document:${documentId}`).emit(
+    //   "edit_document",
+    //   `User ${userName} is editing document: ${documentName}.`,
+    // );
+
+    const data = {
+      docId: `document:${documentId}`,
+      // message: `User ${userName} has left the document: ${documentName}.`,
+      message: `User ${userName} is editing document: ${documentName}.`,
+    };
+    await publisherUserEvent({ type: "edit-document", data });
   });
 };
 
@@ -108,10 +138,17 @@ export const save_document = (io, socket) => {
     }
     /******************************************************************************************************************/
 
-    io.to(`document:${documentId}`).emit(
-      "save_document",
-      `Document: ${documentName} is updated.`,
-    );
+    // io.to(`document:${documentId}`).emit(
+    //   "save_document",
+    //   `Document: ${documentName} is updated.`,
+    // );
+
+    const data = {
+      docId: `document:${documentId}`,
+      // message: `User ${userName} has left the document: ${documentName}.`,
+      message: `Document: ${documentName} is updated.`,
+    };
+    await publisherUserEvent({ type: "save-document", data });
   });
 };
 
@@ -128,7 +165,9 @@ export const save_document = (io, socket) => {
 export const get_online_users = (io, socket) => {
   socket.on("online_users", async (documentId) => {
     const room = `document:${documentId}`;
-    const sockets = await io.in(roon).fetchSockets();
+
+    const sockets = await io.in(room).fetchSockets();
+
     const onlineUsers = sockets.map((socket) => ({
       socketId: socket.id,
       userId: socket.user._id,

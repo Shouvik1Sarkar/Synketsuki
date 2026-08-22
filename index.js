@@ -19,8 +19,6 @@ import { connectRedis } from "./config/redis.config.js";
 
 const server = http.createServer(app);
 
-const io = initializeSocket(server);
-
 app.get("/lala", (req, res) => {
   return res.sendFile(path.join(path.resolve("./public"), "index.html"));
 });
@@ -32,6 +30,7 @@ const startServer = async () => {
   try {
     await connectRedis();
     await connectDB(MONGODB_URI);
+    const io = await initializeSocket(server);
 
     server.listen(PORT, () => {
       console.log("Server running at->", PORT);

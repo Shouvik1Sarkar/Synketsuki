@@ -1,4 +1,5 @@
 import * as cookie from "cookie";
+import User from "../models/user.models.js";
 
 export const socketAuth = async (socket, next) => {
   try {
